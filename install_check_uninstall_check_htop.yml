@@ -1,0 +1,23 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: install htop
+      apt:
+        name: htop
+        state: latest
+    - name: check htop installed?
+      command: htop -v
+      register: htopversion
+    - debug:
+        msg: "htop version: {{htopversion.stdout}}"
+    - name: uninstall htop
+      apt:
+        name: htop
+        state: absent
+    - name: check htop installed?
+      command: htop -v
+      ignore_errors: yes
+      register: htopversion
+    - debug:
+        msg: "{{'htop is not installed' if htopversion.failed else 'htop is still installed'}}"

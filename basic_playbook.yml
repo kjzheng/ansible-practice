@@ -1,0 +1,11 @@
+---
+- hosts: control
+  tasks:
+    - name: query data.gov.sg
+      uri:
+        url: https://data.gov.sg/api/action/datastore_search?resource_id=83fea7ab-d033-4898-a6fc-0e12d73fe416&limit=5
+        return_content: yes
+        method: GET
+      register: data
+    - debug: 
+        var: data

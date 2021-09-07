@@ -1,0 +1,31 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: grab IT graduates no. every year
+      uri:
+        url: https://data.gov.sg/api/action/datastore_search?resource_id=115bf8a7-46df-466c-b7fc-375ef3c1b425&q=Information%20Technology%20MF
+        return_content: yes
+        method: GET
+      register: itgrad_number
+    - name: echo into csv1
+      lineinfile:
+        path: graduates.csv
+        line: year,no. of IT graduates from instituitions in singapore
+        create: yes 
+    - name: echo into csv2
+      lineinfile:
+        path: graduates.csv
+        line: "{{ itgrad_number['json']['result']['records'][item]['year'] }}, {{ itgrad_number['json']['result']['records'][item]['graduates'] }}"       
+      loop: 
+        - 4
+        - 6
+        - 7
+        - 10
+        - 13 
+        - 14
+    - name: cat csv
+      shell: cat graduates.csv
+      register: cat
+    - debug:
+        msg: "{{cat.stdout_lines}}"

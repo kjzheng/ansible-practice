@@ -1,0 +1,101 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: create groups
+      group:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - bill
+        - susan
+        - juan
+        - jason
+        - nancy
+        - greg
+        - jeremy
+        - sally
+    - name: add users
+      user:
+        name: "{{ item }}"
+        state: present
+        shell: /bin/bash
+        group: "{{ item }}"
+      loop:
+        - bill
+        - susan
+        - juan
+        - jason
+        - nancy
+        - greg
+        - jeremy
+    - name: lock bill susan juan accounts
+      ansible.builtin.shell:
+        cmd: for i in bill susan juan; do sudo passwd -l $i; done
+    - name: check jason
+      command: id jason
+      register: idjason
+    - debug:
+        msg: "{{idjason.stdout_lines}}"
+    - name: remove bill susan juan
+      ansible.builtin.command:
+        cmd: userdel {{ item }}
+      loop:
+        - bill
+        - susan
+        - juan
+    - name: change bill home directory to user nancy and group jason
+      ansible.builtin.shell:
+        cmd: chown -R nancy:jason /home/bill
+    - name: change mode directory to grant g+rx to bill
+      ansible.builtin.shell:
+        cmd: chmod g+rx /home/bill
+    - name: change susan home directory to user nancy and group jason
+      ansible.builtin.shell:
+        cmd: chown -R greg:jason /home/susan
+    - name: change mode directory to grant g+rx to susan
+      ansible.builtin.shell:
+        cmd: chmod g+rx /home/susan
+    - name: change juan home directory to user jeremy and group sally
+      ansible.builtin.shell:
+        cmd: chown -R jeremy:sally /home/juan
+    - name: change mode directory to grant g+rx to juan
+      ansible.builtin.shell:
+        cmd: chmod g+rx /home/juan
+    - name: check /home
+      shell: ls -l /home
+      register: idhome
+    - name: echo to file idhome
+      shell: echo {{idhome.stdout_lines}} > llhome.txt
+    - name: print on ansible llhome
+      shell: cat llhome.txt
+      register: cat
+    - debug:
+        msg: "{{cat.stdout_lines}}"
+    - name: delete users
+      user:
+        name: "{{ item }}"
+        state: absent
+        shell: /bin/bash
+        group: "{{ item }}"
+      loop:
+        - bill
+        - susan
+        - juan
+        - jason
+        - nancy
+        - greg
+        - jeremy
+    - name: delete groups
+      group:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - bill
+        - susan
+        - juan
+        - jason
+        - nancy
+        - greg
+        - jeremy
+        - sally

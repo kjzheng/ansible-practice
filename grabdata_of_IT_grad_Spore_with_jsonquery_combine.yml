@@ -1,0 +1,18 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: grab IT graduates no. every year
+      uri:
+        url: https://data.gov.sg/api/action/datastore_search?resource_id=115bf8a7-46df-466c-b7fc-375ef3c1b425&q=MF%20Information%20Technology
+        return_content: yes       
+      register: itgradnumber
+
+    - name: get year and no. of grads
+      no_log: True   
+      set_fact:
+        itgrad: "{{itgrad|default({}) | combine ( {item.year:item.graduates}) }}"
+      with_items: "{{ itgradnumber.json | json_query('result.records[*]')}}"
+    - name: the info
+      debug: 
+        msg: "{{itgrad}}"        

@@ -1,0 +1,80 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: create groupA
+      group:
+        name: groupA
+        gid: 2001
+    - name: create groupB
+      group:
+        name: groupB
+        gid: 2002
+    - name: add user qwerty to groupA
+      ansible.builtin.user:
+        name: qwerty
+        comment: first line on keyboard
+        uid: 1040
+        group: groupA
+    - name: add user zxcvb to groupB
+      ansible.builtin.user:
+        name: zxcvb
+        comment: third line on keyboard
+        uid: 1041
+        group: groupB
+    - name: add user asdfgh to groupB and groupA
+      ansible.builtin.user:
+        name: asdfgh
+        shell: /bin/bash
+        groups: groupA,groupB
+        append: yes
+    - name: check qwerty
+      command: id qwerty
+      ignore_errors: yes
+      register: output_qwerty
+    - debug:
+        msg: "{{output_qwerty.stdout_lines}}"
+    - name: check zxcvb
+      command: id zxcvb
+      ignore_errors: yes
+      register: output_zxcvb
+    - debug:
+        msg: "{{output_zxcvb.stdout_lines}}"
+    - name: check asdfgh
+      command: id asdfgh
+      ignore_errors: yes
+      register: output_asdfgh
+    - debug:
+        msg: "{{output_asdfgh.stdout_lines}}"
+    - name: remove user asdfgh
+      ansible.builtin.user:
+        name: asdfgh
+        state: absent
+    - name: remove user qwerty
+      ansible.builtin.user:
+        name: qwerty
+        state: absent
+    - name: remove user zxcvb
+      ansible.builtin.user:
+        name: zxcvb
+        state: absent
+    - name: delete groupA
+      ansible.builtin.group:
+        name: groupA
+        state: absent
+    - name: delete groupB
+      ansible.builtin.group:
+        name: groupB
+        state: absent
+    - name: check groupA
+      command: egrep -i "groupA" /etc/group
+      ignore_errors: yes
+      register: is_groupA_here
+    - debug:
+        msg: "{{'groupA not here' if is_groupA_here.failed else 'groupA still here'}}"
+    - name: check groupB
+      command: egrep -i "groupB" /etc/group
+      ignore_errors: yes
+      register: is_groupB_here
+    - debug:
+        msg: "{{'groupB not here' if is_groupB_here.failed else 'groupB still here'}}"

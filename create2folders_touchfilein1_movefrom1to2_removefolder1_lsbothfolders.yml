@@ -1,0 +1,36 @@
+---
+- hosts: control
+  become: yes
+  tasks:
+    - name: mkdir folder1
+      ansible.builtin.file:
+        path: ./folder1
+        state: directory
+    - name: mkdir folder2
+      ansible.builtin.file:
+        path: ./folder2
+        state: directory
+    - name: touch file in folder1
+      ansible.builtin.file:
+        path: ./folder1/newfile.txt
+        state: touch
+    - name: mv file folder1 folder2
+      copy:
+        src: ./folder1/newfile.txt
+        dest: ./folder2/
+    - name: rm folder1
+      file:
+        path: ./folder1
+        state: absent
+    - name: ls folder1
+      command: ls folder1
+      ignore_errors: yes
+      register: check_folder1
+    - debug:
+        msg: "{{'folder1 is missing' if check_folder1.failed else 'folder1 is still here'}}"
+    - name: ls folder2/newfile.txt
+      command: ls folder2/newfile.txt
+      ignore_errors: yes
+      register: check_folder2
+    - debug:
+        msg: "{{'newfile.txt is missing' if check_folder2.failed else 'newfile.txt has been moved to folder2'}}"
